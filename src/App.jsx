@@ -8,8 +8,8 @@ function App() {
   const [result, setResult] = useState(null)
   const [downloadUrl, setDownloadUrl] = useState(null)
   const [cloneMode, setCloneMode] = useState('single') // 'single' or 'full'
-  const [maxPages, setMaxPages] = useState(15)
-  const [maxDepth, setMaxDepth] = useState(2)
+  const [maxPages, setMaxPages] = useState(5) // Reduced for faster response within timeout limits
+  const [maxDepth, setMaxDepth] = useState(1) // Reduced to prevent timeouts
 
   const handleClone = async (e) => {
     e.preventDefault()

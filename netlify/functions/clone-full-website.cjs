@@ -120,9 +120,9 @@ exports.handler = async (event, context) => {
 
     console.log('Finalizing ZIP...');
 
-    // Finalize and wait with timeout
+    // Finalize and wait with timeout (reduced for production)
     const finalizePromise = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('ZIP finalize timeout')), 10000);
+      const timeout = setTimeout(() => reject(new Error('ZIP finalize timeout')), 5000);
       archive.on('end', () => {
         clearTimeout(timeout);
         resolve();
@@ -182,10 +182,10 @@ async function crawlWebsite(url, baseHost, pages, visitedUrls, maxPages, maxDept
 
     pages.add(url);
 
-    // Try cloudscraper first to bypass Cloudflare
+    // Try cloudscraper first to bypass Cloudflare (reduced timeout for speed)
     let response;
     try {
-      response = await fetchWithCloudflare(url, { timeout: 15000 });
+      response = await fetchWithCloudflare(url, { timeout: 7000 });
     } catch (cfError) {
       console.log(`Cloudscraper failed for ${url}, trying axios...`);
       // Fallback to regular axios
@@ -193,7 +193,7 @@ async function crawlWebsite(url, baseHost, pages, visitedUrls, maxPages, maxDept
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         },
-        timeout: 15000,
+        timeout: 7000,
         maxRedirects: 3
       });
       response = { data: response.data, status: response.status };
@@ -238,10 +238,10 @@ async function crawlWebsite(url, baseHost, pages, visitedUrls, maxPages, maxDept
 
 // Download a page and all its assets
 async function downloadPageWithAssets(url, baseUrl, baseHost) {
-  // Try cloudscraper first to bypass Cloudflare
+  // Try cloudscraper first to bypass Cloudflare (reduced timeout for production)
   let response;
   try {
-    response = await fetchWithCloudflare(url, { timeout: 30000 });
+    response = await fetchWithCloudflare(url, { timeout: 8000 });
   } catch (cfError) {
     console.log(`Cloudscraper failed for ${url}, trying axios...`);
     // Fallback to regular axios
@@ -249,7 +249,7 @@ async function downloadPageWithAssets(url, baseUrl, baseHost) {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
-      timeout: 30000
+      timeout: 8000
     });
     response = { data: response.data, status: response.status };
   }
@@ -271,7 +271,7 @@ async function downloadPageWithAssets(url, baseUrl, baseHost) {
           try {
             const cssUrl = new URL(href, url).href;
             const cssResponse = await axios.get(cssUrl, {
-              timeout: 10000,
+              timeout: 5000, // Reduced for faster response
               headers: { 'User-Agent': 'Mozilla/5.0' }
             });
 
@@ -306,7 +306,7 @@ async function downloadPageWithAssets(url, baseUrl, baseHost) {
           try {
             const jsUrl = new URL(src, url).href;
             const jsResponse = await axios.get(jsUrl, {
-              timeout: 10000,
+              timeout: 5000, // Reduced for faster response
               headers: { 'User-Agent': 'Mozilla/5.0' }
             });
 
@@ -342,7 +342,7 @@ async function downloadPageWithAssets(url, baseUrl, baseHost) {
             const imgUrl = new URL(src, url).href;
             const imgResponse = await axios.get(imgUrl, {
               responseType: 'arraybuffer',
-              timeout: 10000,
+              timeout: 5000, // Reduced for faster response
               maxContentLength: 10 * 1024 * 1024, // Max 10MB per image
               headers: { 'User-Agent': 'Mozilla/5.0' }
             });

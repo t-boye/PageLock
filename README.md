@@ -84,13 +84,17 @@ npm run dev
 
 - **Max Pages**: Controls how many pages to download
   - Useful for limiting the size of large websites
-  - Default: 15 pages
+  - Default: 5 pages (optimized for Netlify's timeout limits)
+  - Maximum: 50 pages
 
 - **Max Depth**: Controls crawl depth
   - Depth 1: Only the starting page
   - Depth 2: Starting page + all linked pages
   - Depth 3: Starting page + linked pages + pages they link to
-  - Default: 2 levels
+  - Default: 1 level (optimized for faster response)
+  - Maximum: 5 levels
+
+**Note**: On Netlify's free tier, functions timeout after 10 seconds. The paid tier allows up to 26 seconds. For best results, keep maxPages low (5-10) and maxDepth at 1-2 to avoid timeouts.
 
 ## Project Structure
 
@@ -184,7 +188,8 @@ Uses the `cloudscraper` library which:
 - **Dynamic Content**: JavaScript-generated content may not be fully captured
 - **Authentication**: Cannot clone pages behind login walls
 - **Rate Limiting**: Some sites may block rapid requests
-- **Large Sites**: Very large websites may timeout (30 second limit)
+- **Function Timeout**: Netlify Functions have a 10-second timeout (free tier) or 26-second timeout (paid tier). Large websites may timeout if they have many pages or assets.
+- **Performance**: For best results, use maxPages=5-10 and maxDepth=1-2 to stay within timeout limits
 
 ## Troubleshooting
 

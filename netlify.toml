@@ -17,3 +17,8 @@
 
 [functions]
   directory = "netlify/functions"
+
+# Increase function timeout to maximum (26 seconds on paid, 10s on free)
+# This allows more time for web crawling operations
+[[functions]]
+  timeout = 26
