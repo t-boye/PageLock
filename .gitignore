@@ -32,3 +32,15 @@ yarn-error.log*
 venv/
 env/
 ENV/
+
+# Test files and outputs
+test-*.js
+*.zip
+*-clone.html
+*-test.html
+
+# Python files
+*.py
+__pycache__/
+*.py[cod]
+

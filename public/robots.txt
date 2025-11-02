@@ -1,0 +1,13 @@
+# robots.txt for PageLock
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://pagelock.netlify.app/sitemap.xml
+
+# Disallow admin/api endpoints
+Disallow: /.netlify/
+Disallow: /api/
+
+# Crawl delay (optional)
+Crawl-delay: 1

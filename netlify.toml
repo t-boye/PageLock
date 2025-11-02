@@ -3,10 +3,17 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[dev]
+  command = "npm run dev:vite"
+  targetPort = 5173
+  framework = "#custom"
+  autoLaunch = false
+  functionsPort = 8888
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
 [functions]
-  python_version = "3.11"
+  directory = "netlify/functions"
