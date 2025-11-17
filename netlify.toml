@@ -15,8 +15,8 @@
   to = "/index.html"
   status = 200
 
-# Increase function timeout to maximum (26 seconds on paid, 10s on free)
-# This allows more time for web crawling operations
+# Functions configuration
+# Note: Function timeout is set per-function using context or in function code
+# Default timeout is 10s (free tier) or 26s (paid tier)
 [functions]
   directory = "netlify/functions"
-  timeout = 26
