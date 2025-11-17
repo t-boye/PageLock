@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
+import AdsterraPopunder from './components/ads/AdsterraPopunder'
+import AdsterraBanner from './components/ads/AdsterraBanner'
 
 function App() {
   const [url, setUrl] = useState('')
@@ -83,8 +85,12 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <div className="container mx-auto px-4 py-12">
+    <>
+      {/* Adsterra Pop-Under Ad - Loads once per user session */}
+      <AdsterraPopunder />
+
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-orange-500 mb-4 drop-shadow-lg">
@@ -293,6 +299,11 @@ function App() {
           )}
         </div>
 
+        {/* Adsterra Banner Ad - Placed between main content and features */}
+        <div className="max-w-3xl mx-auto">
+          <AdsterraBanner />
+        </div>
+
         {/* Features Section */}
         <div className="max-w-5xl mx-auto mt-16 grid md:grid-cols-3 gap-8">
           <div className="text-center bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-orange-500 transition">
@@ -326,7 +337,8 @@ function App() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 
