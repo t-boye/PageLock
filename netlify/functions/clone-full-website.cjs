@@ -54,7 +54,21 @@ exports.handler = async (event, context) => {
     const assets = new Map(); // URL -> Buffer
     const assetTypes = new Map(); // URL -> content-type
 
-    // Crawl website to find all pages
+    // First, try to discover pages from sitemap (helps with React/SPA sites)
+    console.log('Checking for sitemap.xml...');
+    const sitemapUrls = await fetchSitemap(baseUrl, baseHost, maxPages);
+
+    if (sitemapUrls.size > 0) {
+      console.log(`Found ${sitemapUrls.size} URLs from sitemap`);
+      for (const sitemapUrl of sitemapUrls) {
+        if (pages.size < maxPages) {
+          pages.add(sitemapUrl);
+          visitedUrls.add(sitemapUrl);
+        }
+      }
+    }
+
+    // Also crawl website to find pages not in sitemap
     await crawlWebsite(url, baseHost, pages, visitedUrls, maxPages, maxDepth, 0);
 
     console.log(`Found ${pages.size} pages to clone`);
@@ -157,6 +171,92 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// Fetch and parse sitemap.xml to discover URLs (helps with React/SPA sites)
+async function fetchSitemap(baseUrl, baseHost, maxPages) {
+  const discoveredUrls = new Set();
+  const sitemapUrls = [
+    `${baseUrl}/sitemap.xml`,
+    `${baseUrl}/sitemap_index.xml`,
+    `${baseUrl}/sitemap/sitemap.xml`,
+    `${baseUrl}/sitemaps/sitemap.xml`
+  ];
+
+  for (const sitemapUrl of sitemapUrls) {
+    try {
+      console.log(`Checking sitemap: ${sitemapUrl}`);
+      const response = await axios.get(sitemapUrl, {
+        timeout: 5000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      });
+
+      if (response.status === 200 && response.data) {
+        const $ = cheerio.load(response.data, { xmlMode: true });
+
+        // Check if it's a sitemap index (contains other sitemaps)
+        const sitemapRefs = $('sitemap > loc');
+        if (sitemapRefs.length > 0) {
+          console.log(`Found sitemap index with ${sitemapRefs.length} child sitemaps`);
+
+          // Fetch child sitemaps (limit to first 3 to save time)
+          const childSitemaps = [];
+          sitemapRefs.slice(0, 3).each((i, elem) => {
+            childSitemaps.push($(elem).text().trim());
+          });
+
+          for (const childUrl of childSitemaps) {
+            try {
+              const childResponse = await axios.get(childUrl, {
+                timeout: 5000,
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+              });
+
+              if (childResponse.status === 200) {
+                const child$ = cheerio.load(childResponse.data, { xmlMode: true });
+                child$('url > loc').each((i, elem) => {
+                  const pageUrl = child$(elem).text().trim();
+                  if (pageUrl && discoveredUrls.size < maxPages) {
+                    try {
+                      const urlObj = new URL(pageUrl);
+                      if (urlObj.host === baseHost) {
+                        discoveredUrls.add(pageUrl);
+                      }
+                    } catch (e) {}
+                  }
+                });
+              }
+            } catch (childErr) {
+              console.log(`Failed to fetch child sitemap: ${childUrl}`);
+            }
+          }
+        }
+
+        // Parse regular sitemap URLs
+        $('url > loc').each((i, elem) => {
+          const pageUrl = $(elem).text().trim();
+          if (pageUrl && discoveredUrls.size < maxPages) {
+            try {
+              const urlObj = new URL(pageUrl);
+              if (urlObj.host === baseHost) {
+                discoveredUrls.add(pageUrl);
+              }
+            } catch (e) {}
+          }
+        });
+
+        if (discoveredUrls.size > 0) {
+          console.log(`Sitemap found! Discovered ${discoveredUrls.size} URLs from ${sitemapUrl}`);
+          break; // Found a valid sitemap, stop checking others
+        }
+      }
+    } catch (error) {
+      // Sitemap not found at this location, try next
+      console.log(`No sitemap at ${sitemapUrl}`);
+    }
+  }
+
+  return discoveredUrls;
+}
 
 // Crawl website to find all pages
 async function crawlWebsite(url, baseHost, pages, visitedUrls, maxPages, maxDepth, currentDepth) {
