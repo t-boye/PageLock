@@ -2,6 +2,10 @@
 
 A powerful website cloning tool that allows you to download and save any website for offline viewing. Clone single pages or entire websites with all their assets (HTML, CSS, JavaScript, images).
 
+## Demo
+
+**Live Demo:** [https://pagelock.netlify.app/](https://pagelock.netlify.app/)
+
 ## Features
 
 - **Single Page Clone** - Download any webpage as a standalone HTML file
